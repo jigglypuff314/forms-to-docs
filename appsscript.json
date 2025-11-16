@@ -1,0 +1,42 @@
+{
+ "timeZone": "America/New_York",
+ "dependencies": {
+   "enabledAdvancedServices": [
+     {
+       "userSymbol": "Drive",
+       "serviceId": "drive",
+       "version": "v2"
+     }
+   ]
+ },
+ "exceptionLogging": "STACKDRIVER",
+ "runtimeVersion": "V8",
+ "oauthScopes": [
+   "https://www.googleapis.com/auth/script.container.ui",
+   "https://www.googleapis.com/auth/spreadsheets.currentonly",
+   "https://www.googleapis.com/auth/documents",
+   "https://www.googleapis.com/auth/drive"
+ ],
+ "addOns": {
+   "common": {
+     "name": "Grading Panel",
+     "logoUrl": "https://www.example.com/icon.png",
+     "layoutProperties": {
+       "primaryColor": "#2196F3",
+       "secondaryColor": "#FFC107"
+     },
+     "useLocaleFromApp": true,
+     "homepageTrigger": {
+       "runFunction": "onOpen"
+     }
+   },
+   "sheets": {
+     "homepageTrigger": {
+       "runFunction": "onOpen"
+     }
+   }
+ }
+}
+
+
+
