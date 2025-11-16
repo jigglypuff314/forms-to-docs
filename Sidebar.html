@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+ <head>
+   <base target="_top">
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  
+   <style>
+     /* --- Base Styles --- */
+     :root {
+       --google-blue: #4285f4;
+       --google-blue-dark: #357ae8;
+       --google-green: #0F9D58;
+       --google-red: #DB4437;
+       --border-color: #dadce0;
+       --text-color: #3c4043;
+       --text-light: #5f6368;
+     }
+     * {
+       box-sizing: border-box;
+     }
+     body {
+       font-family: 'Roboto', Arial, sans-serif;
+       font-size: 14px;
+       color: var(--text-color);
+       margin: 0;
+       padding: 15px;
+     }
+     .container {
+       display: flex;
+       flex-direction: column;
+       height: 100vh; /* Fill the sidebar height */
+     }
+     hr {
+       border: none;
+       border-top: 1px solid var(--border-color);
+       margin: 20px 0;
+     }
+    
+     /* --- Sections --- */
+     .menu {
+       flex-shrink: 0;
+     }
+     .settings {
+       flex-grow: 1;
+       overflow-y: auto;
+     }
+     h4 {
+       font-size: 16px;
+       font-weight: 500;
+       margin-top: 0;
+       margin-bottom: 12px;
+     }
+
+
+     /* --- Form Elements --- */
+     .form-group {
+       margin-bottom: 16px;
+     }
+     label {
+       font-weight: 500;
+       font-size: 13px;
+       color: var(--text-light);
+       display: block;
+       margin-bottom: 6px;
+     }
+     input[type="text"] {
+       width: 100%;
+       padding: 8px 12px;
+       border: 1px solid var(--border-color);
+       border-radius: 4px;
+       font-size: 14px;
+     }
+     input[type="text"]:focus {
+       outline: none;
+       border-color: var(--google-blue);
+       box-shadow: 0 0 0 1px var(--google-blue);
+     }
+
+
+     /* --- Buttons --- */
+     button {
+       width: 100%;
+       margin-bottom: 8px;
+       font-size: 14px;
+       font-weight: 500;
+       padding: 9px 16px;
+       border-radius: 4px;
+       border: 1px solid var(--border-color);
+       background-color: #ffffff;
+       color: var(--google-blue);
+       cursor: pointer;
+       transition: background-color 0.2s, box-shadow 0.2s;
+     }
+     button:hover {
+       background-color: #f8f9fa; /* Light grey hover */
+       border-color: #c6c6c6;
+     }
+     button:active {
+       background-color: #f1f3f4;
+     }
+    
+     /* Primary save button */
+     button.action {
+       background-color: var(--google-blue);
+       color: white;
+       border-color: var(--google-blue);
+     }
+     button.action:hover {
+       background-color: var(--google-blue-dark);
+       border-color: var(--google-blue-dark);
+       box-shadow: 0 1px 2px 0 rgba(0,0,0,0.1);
+     }
+
+
+     /* --- Status Area --- */
+     .status {
+       flex-shrink: 0;
+       margin-top: 15px;
+       border-top: 1px solid var(--border-color);
+       padding-top: 10px;
+       height: 40px; /* Reserve space */
+       font-weight: 500;
+     }
+     .status.info {
+       color: var(--text-light);
+     }
+     .status.success {
+       color: var(--google-green);
+     }
+     .status.error {
+       color: var(--google-red);
+     }
+   </style>
+ </head>
+ <body>
+   <div class="container">
+     <div class="menu">
+       <h4>Actions</h4>
+       <button id="setupButton">1. Set Up Sheet</button>
+       <button id="createButton">2. Create New Docs</button>
+       <button id="shareButton">3. Share Graded Docs</button>
+     </div>
+
+
+     <hr>
+
+
+     <div class="settings">
+       <h4>Settings</h4>
+       <div class="form-group">
+         <label for="folderName">Folder Name</label>
+         <input type="text" id="folderName" placeholder="e.g., History 101 Essays">
+       </div>
+      
+       <div class="form-group">
+         <label for="teacherEmails">Teacher Emails (comma separated)</label>
+         <input type="text" id="teacherEmails" placeholder="teacher1@school.edu, teacher2@school.edu">
+       </div>
+  
+       <button class="action" id="saveButton">Save Settings</button>
+     </div>
+    
+     <div id="status" class="status info"></div>
+   </div>
+
+
+   <script>
+     let statusTimer; // Timer to clear the status message
+
+
+     // This function runs when the sidebar first opens
+     window.addEventListener("load", function() {
+       // Ask the Code.gs script to get the currently saved settings
+       google.script.run.withSuccessHandler(populateSettings).loadSettings();
+      
+       // Add click listeners to our buttons
+       document.getElementById("setupButton").addEventListener("click", runSetupSheet);
+       document.getElementById("createButton").addEventListener("click", runCreateDocs);
+       document.getElementById("shareButton").addEventListener("click", runShareDocs);
+       document.getElementById("saveButton").addEventListener("click", saveSettings);
+     });
+    
+     // This function is called after .loadSettings() is successful
+     function populateSettings(settings) {
+       if (settings) {
+         document.getElementById("folderName").value = settings.folderName || "";
+         document.getElementById("teacherEmails").value = settings.teacherEmails || "";
+       }
+     }
+    
+     // This function runs when the "Save" button is clicked
+     function saveSettings() {
+       showStatus("Saving...", "info");
+      
+       var settings = {
+         folderName: document.getElementById("folderName").value,
+         teacherEmails: document.getElementById("teacherEmails").value
+       };
+      
+       google.script.run.withSuccessHandler(saveSuccess).saveSettings(settings);
+     }
+    
+     // This is called after settings are saved successfully
+     function saveSuccess() {
+       showStatus("Settings saved!", "success");
+     }
+    
+     // --- Action Functions ---
+    
+     function runSetupSheet() {
+       showStatus("Setting up sheet...", "info");
+       google.script.run.withSuccessHandler(showResult).setupSheet();
+     }
+    
+     function runCreateDocs() {
+       showStatus("Creating docs... (This may take a moment)", "info");
+       google.script.run.withSuccessHandler(showResult).createMissingDocs();
+     }
+    
+     function runShareDocs() {
+       showStatus("Sharing docs... (This may take a moment)", "info");
+       google.script.run.withSuccessHandler(showResult).shareAllDocsWithStudents();
+     }
+    
+     // --- Helper Functions ---
+    
+     /**
+      * Shows a status message in the sidebar.
+      * @param {string} message The text to display.
+      * @param {string} type 'info', 'success', or 'error' for styling.
+      */
+     function showStatus(message, type) {
+       // Clear any existing timer
+       if (statusTimer) {
+         clearTimeout(statusTimer);
+       }
+
+
+       const statusEl = document.getElementById("status");
+       statusEl.textContent = message;
+       statusEl.className = "status " + type; // Set the class for color
+      
+       // Automatically clear the message after 5 seconds
+       if (type === "success" || type === "error") {
+         statusTimer = setTimeout(function() {
+           statusEl.textContent = "";
+           statusEl.className = "status info";
+         }, 5000);
+       }
+     }
+    
+     // This function is the success handler for all main actions
+     function showResult(message) {
+       // Check if the returned message contains 'Error'
+       if (message.startsWith('Error')) {
+         showStatus(message, "error");
+       } else {
+         showStatus(message, "success");
+       }
+     }
+   </script>
+ </body>
+</html>
+
